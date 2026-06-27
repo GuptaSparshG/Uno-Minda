@@ -105,10 +105,282 @@ def split_into_sections(extraction_result: dict[str, Any]) -> list[dict[str, Any
     ):
         sections = sections[1:]
 
+    # Per-section structural cleanups before duplicate-merging
     for sec in sections:
+        sec["blocks"] = _post_process_blocks(sec["blocks"])
         sec["heading_only"] = not (sec["blocks"] or sec["statements"])
 
     return _merge_duplicates(sections)
+
+
+# ─────────────────────────── post-processing passes ───────────────────────────
+#
+# Docling is line-granular; we fix the three common rough edges here so the
+# /sections/raw response shows what the human actually wrote in the PDF.
+
+_BULLET_CHARS = "➢•▪►▸·"
+
+
+def _post_process_blocks(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Run corrective passes on the in-memory block list:
+      1. attach orphan bullet markers ('➢' alone) to the next paragraph
+      2. join wrapped paragraphs (no terminal punctuation → continues)
+      3. split mixed-marker lists + merge sequential enumerations (e → f)
+      4. repair Docling's concatenated numbering ('1Final' → '1. Final')
+    """
+    blocks = _attach_orphan_markers(blocks)
+    blocks = _join_wrapped_paragraphs(blocks)
+    blocks = _split_and_merge_lists(blocks)
+    blocks = _repair_concatenated_numbering(blocks)
+    return blocks
+
+
+def _repair_concatenated_numbering(
+    blocks: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Docling sometimes emits ListItems where the item number was stuck onto
+    the text with no separator (e.g. '1Final CAD data', '22D drawing',
+    '1818- Mould flow' — that last one is '18' + '18- Mould flow').
+
+    Detect lists whose items match the sequence 1, 2, 3, … and insert '. '
+    between the number prefix and the rest. Also flip the block type to
+    numbered_list since it's clearly an enumeration.
+    """
+    out = []
+    for b in blocks:
+        if b["type"] not in ("bullet_list", "numbered_list") or not b.get("items"):
+            out.append(b)
+            continue
+        items = list(b["items"])
+        fixed, looks_numbered = _try_repair_sequence(items)
+        if looks_numbered:
+            out.append({"type": "numbered_list", "items": fixed})
+        else:
+            out.append(b)
+    return out
+
+
+def _try_repair_sequence(items: list[str]) -> tuple[list[str], bool]:
+    """If items look like a 1,2,3,… sequence with no separator between number
+    and text, repair to 'N. content'. Returns (fixed_items, did_repair).
+    Only considered a sequence if EVERY item starts with the right number.
+    """
+    if len(items) < 2:
+        return items, False
+
+    fixed: list[str] = []
+    looks_numbered = True
+    for i, item in enumerate(items):
+        expected = str(i + 1)
+        s = item.lstrip()
+        # Strip any existing common markers first so we work on the raw text
+        if not s.startswith(expected):
+            looks_numbered = False
+            break
+        rest = s[len(expected):]
+        # Acceptable separators in source: '.', ')', ' ', or none (concat bug)
+        if rest.startswith(". "):
+            fixed.append(f"{expected}. {rest[2:].lstrip()}")
+        elif rest.startswith(".") and len(rest) > 1 and rest[1] != " ":
+            fixed.append(f"{expected}. {rest[1:].lstrip()}")
+        elif rest.startswith(") "):
+            fixed.append(f"{expected}. {rest[2:].lstrip()}")
+        elif rest.startswith(" "):
+            fixed.append(f"{expected}. {rest.lstrip()}")
+        elif rest == "":
+            fixed.append(f"{expected}.")
+        else:
+            # No separator at all — the Docling concatenation bug
+            fixed.append(f"{expected}. {rest}")
+    if not looks_numbered:
+        return items, False
+    return fixed, True
+
+
+def _attach_orphan_markers(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """When a paragraph's text is JUST a bullet marker, glue it onto the next
+    paragraph and emit a single bullet_list item that preserves the marker."""
+    out: list[dict[str, Any]] = []
+    i = 0
+    while i < len(blocks):
+        b = blocks[i]
+        text = (b.get("text") or "").strip() if b["type"] == "paragraph" else ""
+        is_orphan = (
+            b["type"] == "paragraph"
+            and len(text) <= 2
+            and text
+            and text[0] in _BULLET_CHARS
+        )
+        if is_orphan and i + 1 < len(blocks):
+            nxt = blocks[i + 1]
+            if nxt["type"] == "paragraph":
+                marker = text
+                out.append(
+                    {
+                        "type": "bullet_list",
+                        "items": [f"{marker} {(nxt.get('text') or '').strip()}"],
+                    }
+                )
+                i += 2
+                continue
+        out.append(dict(b))
+        i += 1
+    return out
+
+
+_TERMINAL_PUNCT = set(".!?")
+_NEUTRAL_END = set(":;)]\"'")
+
+
+def _join_wrapped_paragraphs(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Merge consecutive paragraph blocks that look like one wrapped sentence,
+    and also bridge wrap-continuation from a list's LAST item into the next
+    paragraph (PDF bullets can wrap into what looks like a separate text)."""
+    out: list[dict[str, Any]] = []
+    for b in blocks:
+        if not out:
+            out.append(dict(b))
+            continue
+        prev = out[-1]
+
+        # paragraph → paragraph wrap-merge
+        if (
+            b["type"] == "paragraph"
+            and prev["type"] == "paragraph"
+            and _is_wrap_continuation(prev.get("text", ""), b.get("text", ""))
+        ):
+            prev["text"] = prev["text"].rstrip() + " " + (b.get("text") or "").lstrip()
+            continue
+
+        # list's last item → paragraph wrap-merge
+        if (
+            b["type"] == "paragraph"
+            and prev["type"] in ("bullet_list", "numbered_list")
+            and prev.get("items")
+            and _is_wrap_continuation(prev["items"][-1], b.get("text", ""))
+        ):
+            prev["items"][-1] = (
+                prev["items"][-1].rstrip()
+                + " "
+                + (b.get("text") or "").lstrip()
+            )
+            continue
+
+        out.append(dict(b))
+    return out
+
+
+def _is_wrap_continuation(prev_text: str, next_text: str) -> bool:
+    if not prev_text or not next_text:
+        return False
+    last = prev_text.rstrip()[-1] if prev_text.rstrip() else ""
+    first = next_text.lstrip()[:1]
+    if not last or not first:
+        return False
+    # Hard sentence terminators → never wrap-continue
+    if last in _TERMINAL_PUNCT:
+        return False
+    # Heading-style colon / closing punctuation → don't wrap-merge
+    if last in _NEUTRAL_END:
+        return False
+    # Comma at end → almost certainly continues
+    if last == ",":
+        return True
+    # Next starts lowercase → continues
+    if first.isalpha() and first.islower():
+        return True
+    # prev ends with a digit and next starts with a unit-like word
+    if last.isdigit():
+        return True
+    return False
+
+
+def _split_and_merge_lists(
+    blocks: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Two passes:
+       (a) split a list block whose items have mixed marker categories
+       (b) merge consecutive list blocks whose markers form a continuous
+           enumeration (e → f, 1 → 2, …)
+    """
+    # ── (a) split mixed-category lists
+    split_out: list[dict[str, Any]] = []
+    for b in blocks:
+        if b["type"] not in ("bullet_list", "numbered_list") or not b.get("items"):
+            split_out.append(b)
+            continue
+        # Group consecutive items by marker category
+        groups: list[tuple[str, list[str]]] = []
+        cur_cat: str | None = None
+        cur_items: list[str] = []
+        for it in b["items"]:
+            cat = _marker_category(it)
+            if cat != cur_cat and cur_items:
+                groups.append((cur_cat or "none", cur_items))
+                cur_items = []
+            cur_cat = cat
+            cur_items.append(it)
+        if cur_items:
+            groups.append((cur_cat or "none", cur_items))
+
+        if len(groups) == 1:
+            split_out.append(b)
+        else:
+            for cat, items in groups:
+                btype = "numbered_list" if cat == "enumeration" else "bullet_list"
+                split_out.append({"type": btype, "items": items})
+
+    # ── (b) merge sequential enumerations
+    merged: list[dict[str, Any]] = []
+    for b in split_out:
+        if (
+            merged
+            and merged[-1]["type"] in ("bullet_list", "numbered_list")
+            and b["type"] in ("bullet_list", "numbered_list")
+            and merged[-1].get("items")
+            and b.get("items")
+        ):
+            prev_mk = _extract_enum_marker(merged[-1]["items"][-1])
+            next_mk = _extract_enum_marker(b["items"][0])
+            if prev_mk and next_mk and _is_sequential_marker(prev_mk, next_mk):
+                merged[-1] = {
+                    "type": "numbered_list",
+                    "items": list(merged[-1]["items"]) + list(b["items"]),
+                }
+                continue
+        merged.append(b)
+    return merged
+
+
+def _marker_category(item: str) -> str:
+    if not item:
+        return "none"
+    s = item.lstrip()
+    if not s:
+        return "none"
+    if s[0] in "➢•▪►▸":
+        return "decoration"
+    if s[0] == "·":
+        return "sub-decoration"
+    if re.match(r"^[a-zA-Z]\.\s|^\d+\.\s", s):
+        return "enumeration"
+    return "none"
+
+
+def _extract_enum_marker(item: str) -> str | None:
+    m = re.match(r"^([a-zA-Z]|\d+)\.\s", (item or "").lstrip())
+    return m.group(1) if m else None
+
+
+def _is_sequential_marker(prev: str, nxt: str) -> bool:
+    if not prev or not nxt:
+        return False
+    if prev.isdigit() and nxt.isdigit():
+        return int(nxt) == int(prev) + 1
+    if len(prev) == 1 and len(nxt) == 1 and prev.isalpha() and nxt.isalpha():
+        # Treat 'I' (uppercase I) and 'l' kindly — PDFs often confuse i/I
+        return ord(nxt.lower()) == ord(prev.lower()) + 1
+    return False
 
 
 def _new_section(heading: str, level: int) -> dict[str, Any]:
