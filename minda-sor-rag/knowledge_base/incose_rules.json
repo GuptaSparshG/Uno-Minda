@@ -1,0 +1,110 @@
+[
+  {
+    "id": "incose-R1",
+    "rule_id": "R1",
+    "rule_name": "Necessary",
+    "text": "INCOSE Rule R1 - Necessary: A requirement is necessary if removing it would cause a deficiency that cannot be fulfilled by other requirements. Every requirement must trace to a higher-level need or stakeholder requirement. Check: does the requirement have a traceable source? If no parent need or use case is referenced, flag as potentially unnecessary."
+  },
+  {
+    "id": "incose-R2",
+    "rule_id": "R2",
+    "rule_name": "Active Voice",
+    "text": "INCOSE Rule R2 - Active Voice: Requirements shall be written in active voice with a clear subject performing the action. BAD: 'The data shall be processed by the system.' GOOD: 'The system shall process the data.' Passive constructions obscure who/what is responsible. Detect patterns: is/are/was/were + past participle."
+  },
+  {
+    "id": "incose-R3",
+    "rule_id": "R3",
+    "rule_name": "Unambiguous",
+    "text": "INCOSE Rule R3 - Unambiguous: Requirements shall not contain vague, subjective, or ambiguous terms. Problematic words include: adequate, appropriate, as applicable, as needed, efficient, easy, enough, etc., flexible, friendly, generally, improved, maximize, minimize, normal, optimal, reasonable, robust, seamless, several, significant, simple, some, sufficient, suitable, timely, user-friendly, versatile, and/or. BAD: 'The system shall provide adequate performance.' GOOD: 'The system shall process 500 requests per second.'"
+  },
+  {
+    "id": "incose-R4",
+    "rule_id": "R4",
+    "rule_name": "Complete",
+    "text": "INCOSE Rule R4 - Complete: A requirement is complete when it contains all necessary information to be understood without needing additional explanation. Flag: TBD, TBS, TBC, TBA placeholders, missing units, missing reference document versions, ellipsis, incomplete sentences. BAD: 'The response time shall be TBD.' GOOD: 'The system shall respond within 200ms.'"
+  },
+  {
+    "id": "incose-R5",
+    "rule_id": "R5",
+    "rule_name": "Singular",
+    "text": "INCOSE Rule R5 - Singular (Atomic): Each requirement shall address one and only one capability, characteristic, or constraint. Multiple 'shall' keywords in one statement indicate it should be split. BAD: 'The system shall log events and shall generate alerts.' GOOD: Split into two: 'The system shall log events.' and 'The system shall generate alerts.'"
+  },
+  {
+    "id": "incose-R6",
+    "rule_id": "R6",
+    "rule_name": "Feasible",
+    "text": "INCOSE Rule R6 - Feasible: A requirement must be technically achievable within the system constraints, budget, schedule, and the laws of physics. Flag requirements that demand impossible performance (zero latency, 100% accuracy without context) or contradict other requirements. Feasibility cannot always be checked automatically but flag superlatives like 'maximum possible', 'as fast as possible'."
+  },
+  {
+    "id": "incose-R7",
+    "rule_id": "R7",
+    "rule_name": "Verifiable",
+    "text": "INCOSE Rule R7 - Verifiable: A requirement must be written so that a test, analysis, inspection, or demonstration can confirm whether it is met. Requirements need measurable criteria: numbers with units, reference to a standard, or defined threshold. BAD: 'The system shall be fast.' GOOD: 'The system shall complete startup within 5 seconds.' Subjective terms like objectionable, easy, adequate make requirements untestable."
+  },
+  {
+    "id": "incose-R8",
+    "rule_id": "R8",
+    "rule_name": "Correct",
+    "text": "INCOSE Rule R8 - Correct: A requirement must accurately describe the system capability or constraint. It should not contradict other requirements or stakeholder needs. Detect contradictions by checking for inconsistent units, conflicting thresholds, or duplicate requirements with different limits."
+  },
+  {
+    "id": "incose-R9",
+    "rule_id": "R9",
+    "rule_name": "Conforming",
+    "text": "INCOSE Rule R9 - Conforming: Requirements should conform to an approved template and style guide. ISO 29148 recommends: [Condition] [Subject] [Action] [Object] [Constraint]. Example: 'When the temperature exceeds 85C, the system shall activate the cooling fan within 500ms.' Non-conforming requirements are harder to review and trace."
+  },
+  {
+    "id": "incose-R10",
+    "rule_id": "R10",
+    "rule_name": "No Escape Clauses",
+    "text": "INCOSE Rule R10 - Free of Escape Clauses: Requirements shall not contain clauses that provide a way to avoid meeting the requirement. Escape phrases: 'unless otherwise specified', 'as far as practical', 'where possible', 'if resources permit', 'to the extent feasible', 'except where noted', 'as agreed', 'subject to'. These undermine the binding nature of shall."
+  },
+  {
+    "id": "incose-R11",
+    "rule_id": "R11",
+    "rule_name": "Implementation-Free",
+    "text": "INCOSE Rule R11 - Implementation-Free: Requirements should describe WHAT, not HOW. Avoid specifying technology, algorithms, programming languages, or specific products unless they are constraints from the stakeholder. BAD: 'The system shall use a PostgreSQL database to store users.' GOOD: 'The system shall persist user records across restarts.'"
+  },
+  {
+    "id": "incose-R12",
+    "rule_id": "R12",
+    "rule_name": "Uniquely Identified",
+    "text": "INCOSE Rule R12 - Uniquely Identified: Each requirement must have a unique, persistent identifier (e.g., SOR-001) that does not change as requirements are reorganized. This is essential for traceability across design, implementation, and verification."
+  },
+  {
+    "id": "incose-R13",
+    "rule_id": "R13",
+    "rule_name": "Granular",
+    "text": "INCOSE Rule R13 - Granular: Requirements should be written at a consistent level of detail. Avoid mixing high-level goals with implementation-specific minutiae in the same document section. Each requirement should be at a level of granularity that allows allocation to a single component or subsystem."
+  },
+  {
+    "id": "incose-R14",
+    "rule_id": "R14",
+    "rule_name": "Positive",
+    "text": "INCOSE Rule R14 - Positive Statement: Requirements should state what the system SHALL do, not what it shall NOT do. Negative requirements are harder to verify. BAD: 'The system shall not lose data.' GOOD: 'The system shall maintain data integrity with zero data loss.' Flag: 'shall not', 'should not', 'must not' constructions."
+  },
+  {
+    "id": "incose-R15",
+    "rule_id": "R15",
+    "rule_name": "Correct Obligation Keywords",
+    "text": "INCOSE Rule R15 / ISO 29148 Section 5.2.7 - Obligation Keywords: 'shall' = mandatory requirement (binding). 'should' = recommendation (advisory). 'may' = permission. 'will' = statement of fact or declaration of purpose. Using 'must' instead of 'shall' is non-standard per ISO 29148. 'needs to', 'has to', 'is required to' should be replaced with 'shall'."
+  },
+  {
+    "id": "incose-R16",
+    "rule_id": "R16",
+    "rule_name": "Avoid Pronouns",
+    "text": "INCOSE Rule R16 - Avoid Pronouns: Requirements should not use pronouns (it, they, this, that, these, those) that refer to entities outside the requirement. Each requirement must be self-contained. BAD: 'When it receives the signal, it shall respond.' GOOD: 'When the controller receives the signal, the controller shall respond.'"
+  },
+  {
+    "id": "incose-R17",
+    "rule_id": "R17",
+    "rule_name": "Define Terms",
+    "text": "INCOSE Rule R17 - Define Terms: Acronyms and domain-specific terms shall be defined in a glossary on first use. Requirements containing undefined acronyms are ambiguous and risk misinterpretation across teams."
+  },
+  {
+    "id": "incose-R18",
+    "rule_id": "R18",
+    "rule_name": "Modular",
+    "text": "INCOSE Rule R18 - Modular: Group related requirements together by capability or subsystem. A well-modularized requirement set improves traceability and impact analysis when requirements change."
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "iso-5.2.4",
+    "clause_id": "5.2.4",
+    "text": "ISO 29148 Section 5.2.4 - Requirement Taxonomy: Requirements are classified into types. Functional requirements define what the system does. Performance requirements define how well (speed, capacity, accuracy). Interface requirements define external system boundaries. Design constraints are imposed limitations. Quality attributes cover reliability, maintainability, security, usability. Additional categories: Safety, Environmental, Regulatory compliance."
+  },
+  {
+    "id": "iso-5.2.5",
+    "clause_id": "5.2.5",
+    "text": "ISO 29148 Section 5.2.5 - Requirement Levels: Requirements exist at multiple levels - Business (stakeholder needs and goals), System (capabilities the system provides), Subsystem/Component (allocated requirements). Each level should trace to the level above. SOR (Statement of Requirement) documents typically capture System-level and Subsystem-level requirements for supplier work."
+  },
+  {
+    "id": "iso-5.2.6",
+    "clause_id": "5.2.6",
+    "text": "ISO 29148 Section 5.2.6 - Requirement Sources: Requirements derive from stakeholders, regulations, standards, prior systems, and constraints. Each requirement should reference its source. Compliance requirements (ISO, ASME, FMVSS, AIS, ECE, etc.) are derived from external regulatory or industry standards."
+  },
+  {
+    "id": "iso-5.2.7",
+    "clause_id": "5.2.7",
+    "text": "ISO 29148 Section 5.2.7 - Obligation Keywords: The standard defines four obligation levels. 'Shall' indicates a binding requirement that must be met. 'Should' indicates a recommendation that is advised but not mandatory. 'May' indicates a permission or optional feature. 'Will' indicates a statement of fact, a declaration of purpose, or a future action that is not a requirement."
+  },
+  {
+    "id": "iso-5.2.8-structure",
+    "clause_id": "5.2.8",
+    "text": "ISO 29148 Section 5.2.8 - Requirement Statement Structure: Well-formed requirements follow one of two patterns. Syntax 1: [Subject] [Action] [Constraint]. Example: 'The system shall process transactions within 2 seconds.' Syntax 2: [Condition] [Subject] [Action] [Object] [Constraint]. Example: 'When the temperature exceeds 85C, the system shall activate the cooling fan within 500ms.'"
+  },
+  {
+    "id": "iso-5.2.8-characteristics",
+    "clause_id": "5.2.8",
+    "text": "ISO 29148 Section 5.2.8 - Nine Characteristics of Well-Formed Requirements: 1. Necessary 2. Appropriate (implementation-free) 3. Unambiguous 4. Complete 5. Singular (atomic) 6. Feasible 7. Verifiable 8. Correct 9. Conforming to an approved standard template."
+  },
+  {
+    "id": "iso-5.3",
+    "clause_id": "5.3",
+    "text": "ISO 29148 Section 5.3 - Requirement Set Characteristics: A well-formed set of requirements is complete (covers all needs), consistent (no contradictions), feasible (achievable as a whole), comprehensible (understandable to stakeholders), and able to be validated. Even when individual requirements are well-formed, the SET must be evaluated holistically."
+  },
+  {
+    "id": "iso-annexC",
+    "clause_id": "Annex C",
+    "text": "ISO 29148 Annex C - Problematic Words and Phrases: The following terms introduce ambiguity and should be avoided in requirements: adequate, appropriate, as applicable, be able to, be capable of, but not limited to, capability of, easy, effective, efficient, etc., as a minimum, flexible, improved, maximize, minimize, normal, optimal, rapid, sufficient, suitable, timely, user-friendly."
+  },
+  {
+    "id": "iso-annexD",
+    "clause_id": "Annex D",
+    "text": "ISO 29148 Annex D - Verifiability: A requirement is verifiable when its satisfaction can be demonstrated by inspection, analysis, demonstration, or test. Quantitative requirements should specify the value, tolerance, units, and conditions under which the measurement is made. Reference to recognized standards (ISO, AIS, ASTM, FMVSS, ECE) can also establish verifiability."
+  },
+  {
+    "id": "iso-taxonomy-safety",
+    "clause_id": "5.2.4",
+    "text": "ISO 29148 Safety and Environmental Requirements: Safety requirements address hazards, fault tolerance, and protection of users and equipment. Environmental requirements address operating temperature, humidity, vibration, EMI/EMC, ingress protection (IP rating), and material/RoHS/ELV compliance. These typically reference industry standards like IEC 60529, IEC 61000, AIS, ECE regulations."
+  }
+]
